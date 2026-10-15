@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIS — Member ID & Tracking System</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif;}
+        :root{--dark:#121212;--red:#b91c1c;--gold:#ca8a04;--green:#16a34a;--gray:#374151;--light:#f3f4f6;--accent-blue:#2563eb;}
+        body{background:linear-gradient(135deg,#1f2937 0%,#111827 100%);min-height:100vh;color:white;}
+        .container{max-width:1200px;margin:0 auto;padding:20px;}
+        .header{text-align:center;padding:25px 0;border-bottom:2px solid var(--gold);margin-bottom:30px;}
+        .header h1{font-size:1.8rem;color:var(--gold);}
+        .header p{color:#9ca3af;margin-top:5px;}
+        .card{background:rgba(31,41,55,0.8);border-radius:12px;padding:25px;margin-bottom:20px;border:1px solid #4b5563;box-shadow:0 4px 15px rgba(0,0,0,0.4);}
+        .card h2{color:var(--gold);margin-bottom:20px;font-size:1.3rem;border-bottom:1px solid #374151;padding-bottom:10px;}
+        .card h3{color:var(--light);margin:15px 0 10px;}
+        input,select,textarea,button{width:100%;padding:12px;margin:8px 0;border-radius:6px;border:none;font-size:1rem;}
+        input,select,textarea{background:#1f2937;border:1px solid #4b5563;color:white;}
+        input:focus,select:focus,textarea:focus{outline:none;border-color:var(--gold);}
+        button{background:var(--red);color:white;font-weight:bold;cursor:pointer;transition:0.3s;}
+        button:hover{background:#dc2626;transform:translateY(-2px);}
+        button.secondary{background:var(--gray);}
+        button.secondary:hover{background:#4b5563;}
+        button.success{background:var(--green);}
+        button.success:hover{background:#15803d;}
+        button.small{padding:6px 12px;width:auto;font-size:0.85rem;}
+        button.warning{background:#eab308;color:black;}
+        button.warning:hover{background:#ca8a04;}
+        button.promote{background:var(--green);}
+        button.demote{background:var(--red);}
+        .btn-group{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;}
+        .hidden{display:none !important;}
+        .nav-tabs{display:flex;gap:5px;margin-bottom:20px;flex-wrap:wrap;}
+        .nav-tab{padding:10px 18px;background:#374151;border-radius:6px;cursor:pointer;transition:0.3s;position:relative;}
+        .nav-tab.active{background:var(--gold);color:black;font-weight:bold;}
+        .badge-notif{position:absolute;top:-5px;right:-5px;background:var(--red);color:white;font-size:0.7rem;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;}
+        table{width:100%;border-collapse:collapse;margin-top:15px;}
+        th,td{padding:10px;text-align:left;border-bottom:1px solid #4b5563;font-size:0.9rem;}
+        th{color:var(--gold);background:#111827;}
+        .id-display{background:linear-gradient(135deg,#ca8a04,#854d0e);color:black;padding:15px;border-radius:8px;text-align:center;font-weight:bold;font-size:1.3rem;margin:15px 0;}
+        .rank-badge{display:inline-block;background:var(--red);padding:4px 10px;border-radius:20px;font-size:0.85rem;font-weight:bold;}
+        .rank-hierarchy{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:15px 0;}
+        .rank-item{padding:6px 12px;border-radius:4px;background:#374151;font-size:0.9rem;}
+        .alert{padding:12px;border-radius:6px;margin:10px 0;}
+        .alert.success{background:#163d25;border:1px solid var(--green);color:#bbf7d0;}
+        .alert.error{background:#450a0a;border:1px solid var(--red);color:#fecaca;}
+        .alert.info{background:#1e3a5f;border:1px solid #3b82f6;color:#bfdbfe;}
+        .alert.warning{background:#423514;border:1px solid #eab308;color:#fef3c7;}
+        .search-box{max-width:400px;}
+        .log-item{border-left:3px solid var(--gold);padding:10px 15px;margin:8px 0;background:#1f2937;border-radius:0 6px 6px 0;}
+        .log-time{font-size:0.8rem;color:#9ca3af;}
+        .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:15px;}
+        .logout-btn{background:var(--gray);}
+        .messaging-container{display:flex;gap:15px;height:500px;}
+        .members-list{width:30%;overflow-y:auto;border-right:1px solid #4b5563;padding-right:15px;}
+        .chat-area{width:70%;display:flex;flex-direction:column;}
+        .member-item{padding:12px;border-radius:6px;margin-bottom:8px;cursor:pointer;background:#1f2937;transition:0.2s;}
+        .member-item:hover,.member-item.selected{background:#374151;border-left:3px solid var(--gold);}
+        .member-item .unread-dot{display:inline-block;width:10px;height:10px;background:var(--green);border-radius:50%;margin-right:8px;}
+        .chat-messages{flex:1;overflow-y:auto;padding:15px;background:#111827;border-radius:8px;margin-bottom:15px;}
+        .msg{margin-bottom:15px;max-width:80%;}
+        .msg.admin{margin-left:auto;text-align:right;}
+        .msg.member{margin-right:auto;text-align:left;}
+        .msg-bubble{padding:10px 15px;border-radius:18px;display:inline-block;}
+        .msg.admin .msg-bubble{background:var(--accent-blue);border-bottom-right-radius:4px;}
+        .msg.member .msg-bubble{background:#374151;border-bottom-left-radius:4px;}
+        .msg-time{font-size:0.75rem;color:#9ca3af;margin-top:4px;}
+        .no-chat-selected{display:flex;align-items:center;justify-content:center;height:100%;color:#9ca3af;text-align:center;}
+        .device-info{font-size:0.8rem;color:#9ca3af;margin-top:5px;}
+        .rank-edit-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+        select.rank-select{width:auto;padding:6px 10px;margin:0;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1> SPECIAL INTELLIGENT SQUAD</h1>
+            <p>ONE BROTHERHOOD • ONE STANDARD • UNWAVERING HONOUR</p>
+        </div>
+
+        <!-- LOGIN PAGE -->
+        <div id="loginPage" class="card" style="max-width:450px;margin:50px auto;">
+            <h2 style="text-align:center;font-size:1.5rem;">🔐 SYSTEM LOGIN</h2>
+            <div class="alert success" id="loginInfo">
+            </div>
+            <h3>Login to your account</h3>
+            <input type="text" id="loginUser" placeholder="Username">
+            <input type="password" id="loginPass" placeholder="Password">
+            <button onclick="login()">LOGIN</button>
+            <p style="text-align:center;margin:15px 0;color:#9ca3af;">— Don't have an account? —</p>
+            <button class="secondary" onclick="showRegister()">REGISTER AS MEMBER</button>
+        </div>
+
+        <!-- DEVICE BLOCKED PAGE -->
+        <div id="deviceBlockedPage" class="card hidden" style="max-width:450px;margin:50px auto;">
+            <h2 style="text-align:center;font-size:1.5rem;color:#ef4444;">🚫 LOGIN BLOCKED</h2>
+            <div class="alert error">
+                <strong>This account is already active on another device!</strong><br><br>
+                For security reasons, each account can only be logged in on <strong>ONE phone/browser at a time</strong>.<br><br>
+                If this is your account and you need to switch devices, contact your Admin to reset your device access.
+            </div>
+            <p style="text-align:center;margin:15px 0;color:#9ca3af;">
+                Using someone else's device? Please log out there first.
+            </p>
+            <button class="secondary" onclick="showLogin()">← Back to Login</button>
+        </div>
+
+        <!-- REGISTER PAGE -->
+        <div id="registerPage" class="card hidden">
+            <h2>📋 MEMBER REGISTRATION</h2>
+            <div class="grid-2">
+                <div>
+                    <label>Full Name *</label>
+                    <input type="text" id="regName" placeholder="Enter full name">
+                </div>
+                <div>
+                    <label>Username *</label>
+                    <input type="text" id="regUsername" placeholder="Create username">
+                </div>
+                <div>
+                    <label>Password *</label>
+                    <input type="password" id="regPassword" placeholder="Create password">
+                </div>
+                <div>
+                    <label>Date of Birth</label>
+                    <input type="date" id="regDOB">
+                </div>
+                <div>
+                    <label>Gender</label>
+                    <select id="regGender">
+                        <option value="">Select...</option>
+                        <option>Male</option>
+                        <option>Female</option>
+                    </select>
+                </div>
+                <div>
+                    <label>State of Origin *</label>
+                    <input type="text" id="regState" placeholder="e.g. Lagos">
+                </div>
+                <div>
+                    <label>NIN (National ID No.) *</label>
+                    <input type="text" id="regNIN" placeholder="Enter your NIN">
+                </div>
+                <div>
+                    <label>Phone Number *</label>
+                    <input type="text" id="regPhone" placeholder="e.g. 080...">
+                </div>
+            </div>
+            <label>Residential Address</label>
+            <textarea id="regAddress" rows="2" placeholder="Your home address"></textarea>
+            <div class="grid-2">
+                <div>
+                    <label>Emergency Contact Name</label>
+                    <input type="text" id="regEmergName" placeholder="Full name">
+                </div>
+                <div>
+                    <label>Emergency Contact Phone</label>
+                    <input type="text" id="regEmergPhone" placeholder="Phone number">
+                </div>
+            </div>
+            <label>Sponsor / Who Referred You</label>
+            <input type="text" id="regSponsor" placeholder="Name or SIS ID of member who invited you">
+            <p style="color:#9ca3af;font-size:0.85rem;margin:10px 0;">⚠️ Your account will be Pending until Admin approves it. You will receive your SIS ID once approved.</p>
+            <button onclick="register()">SUBMIT APPLICATION</button>
+            <button class="secondary" onclick="showLogin()">← Back to Login</button>
+        </div>
+
+        <!-- ADMIN PANEL -->
+        <div id="adminPanel" class="hidden">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+                <h2>🛡️ ADMIN DASHBOARD</h2>
+                <button class="secondary logout-btn" onclick="logout()">LOGOUT</button>
+            </div>
+
+            <div class="nav-tabs">
+                <div class="nav-tab active" onclick="showAdminTab('overview')">📊 Overview</div>
+                <div class="nav-tab" onclick="showAdminTab('members')">👥 Members</div>
+                <div class="nav-tab" onclick="showAdminTab('pending')">⏳ Pending</div>
+                <div class="nav-tab" onclick="showAdminTab('ranks')">🎖️ Manage Ranks</div>
+                <div class="nav-tab" onclick="showAdminTab('devices')">📱 Device Control</div>
+                <div class="nav-tab" onclick="showAdminTab('tracking')">📍 Tracking</div>
+                <div class="nav-tab" onclick="showAdminTab('activities')">📝 Activities</div>
+                <div class="nav-tab" id="adminMessagesTab" onclick="showAdminTab('messages')">
+                    📩 Messages
+                    <span id="adminMsgBadge" class="badge-notif hidden">0</span>
+                </div>
+                <div class="nav-tab" onclick="showAdminTab('search')">🔍 Search</div>
+            </div>
+
+            <!-- Overview Tab -->
+            <div id="admin-overview" class="card">
+                <h2>📊 SYSTEM OVERVIEW</h2>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:15px;margin-top:20px;">
+                    <div class="card" style="text-align:center;background:#163d25;border-color:#22c55e;">
+                        <div style="font-size:2rem;font-weight:bold;color:#22c55e;" id="totalActive">0</div>
+                        <div>Active Members</div>
+                    </div>
+                    <div class="card" style="text-align:center;background:#423514;border-color:#eab308;">
+                        <div style="font-size:2rem;font-weight:bold;color:#eab308;" id="totalPending">0</div>
+                        <div>Pending Approval</div>
+                    </div>
+                    <div class="card" style="text-align:center;background:#1e3a5f;border-color:#60a5fa;">
+                        <div style="font-size:2rem;font-weight:bold;color:#60a5fa;" id="totalLocUpdates">0</div>
+                        <div>Location Updates</div>
+                    </div>
+                    <div class="card" style="text-align:center;background:#374151;border-color:#9ca3af;">
+                        <div style="font-size:2rem;font-weight:bold;color:#9ca3af;" id="totalMembers">0</div>
+                        <div>Total Members</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Members Tab -->
+            <div id="admin-members" class="card hidden">
+                <h2>👥 ALL MEMBERS</h2>
+                <table id="membersTable">
+                    <thead>
+                        <tr>
+                            <th>SIS ID</th>
+                            <th>Full Name</th>
+                            <th>Rank</th>
+                            <th>NIN</th>
+                            <th>Date Joined</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="membersList"></tbody>
+                </table>
+            </div>
+
+            <!-- Pending Tab -->
+            <div id="admin-pending" class="card hidden">
+                <h2>⏳ PENDING APPROVALS</h2>
+                <div id="pendingList"></div>
+            </div>
+
+            <!-- RANK MANAGEMENT TAB -->
+            <div id="admin-ranks" class="card hidden">
+                <h2>🎖️ RANK MANAGEMENT</h2>
+                <p style="color:#9ca3af;margin-bottom:15px;">Promote or Demote members. You can also select a specific rank from the dropdown.</p>
+                
+                <h3>📋 RANK HIERARCHY (Lowest → Highest)</h3>
+                <div class="rank-hierarchy" style="flex-wrap:wrap;">
+                    <span class="rank-item" style="background:#6b7280;">Recruit</span>
+                    <span>→</span>
+                    <span class="rank-item">Member</span>
+                    <span>→</span>
+                    <span class="rank-item" style="background:#2563eb;">Corporal</span>
+                    <span>→</span>
+                    <span class="rank-item" style="background:#ca8a04;">Sergeant</span>
+                    <span>→</span>
+                    <span class="rank-item" style="background:#d97706;">Lieutenant</span>
+                    <span>→</span>
+                    <span class="rank-item" style="background:#dc2626;">Captain</span>
+                    <span>→</span>
+                    <span class="rank-item" style="background:#7c3aed;">Commander</span>
+                </div>
+
+                <h3 style="margin-top:25px;">🫡 MANAGE MEMBER RANKS</h3>
+                <div id="rankMemberList"></div>
+            </div>
+
+            <!-- DEVICE CONTROL TAB -->
+            <div id="admin-devices" class="card hidden">
+                <h2>📱 DEVICE MANAGEMENT</h2>
+                <p style="color:#9ca3af;margin-bottom:15px;">Each account is locked to one device. Reset access when members change phones.</p>
+                <div id="deviceList"></div>
+            </div>
+
+            <!-- Tracking Tab -->
+            <div id="admin-tracking" class="card hidden">
+                <h2>📍 LOCATION & MOVEMENT TRACKING</h2>
+                <p style="color:#9ca3af;margin-bottom:15px;">View latest location updates submitted by members</p>
+                <div id="locationLogs"></div>
+            </div>
+
+            <!-- Activities Tab -->
+            <div id="admin-activities" class="card hidden">
+                <h2>📝 ACTIVITY LOGS</h2>
+                <p style="color:#9ca3af;margin-bottom:15px;">All reported member activities</p>
+                <div id="activityLogs"></div>
+            </div>
+
+            <!-- ADMIN MESSAGES TAB -->
+            <div id="admin-messages" class="card hidden">
+                <h2>📩 ADMIN — MESSAGES</h2>
+                <p style="color:#9ca3af;margin-bottom:15px;">Select a member to view conversation and send messages</p>
+                <div class="messaging-container">
+                    <div class="members-list">
+                        <h3 style="position:sticky;top:0;background:rgba(31,41,55,0.95);padding:5px 0;margin-top:0;">Members</h3>
+                        <div id="msgMemberList">
+                            <p style="color:#9ca3af;font-size:0.9rem;">No active members yet.</p>
+                        </div>
+                    </div>
+                    <div class="chat-area">
+                        <div id="chatHeader" style="font-weight:bold;padding-bottom:10px;border-bottom:1px solid #4b5563;display:none;">
+                            <span id="chatWithName"></span>
+                        </div>
+                        <div id="chatMessages" class="chat-messages">
+                            <div class="no-chat-selected">← Select a member from the list to start messaging</div>
+                        </div>
+                        <div id="chatInputArea" style="display:none;">
+                            <textarea id="adminMsgInput" rows="2" placeholder="Type your message here..."></textarea>
+                            <button onclick="sendAdminMessage()">📤 SEND MESSAGE</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search Tab -->
+            <div id="admin-search" class="card hidden">
+                <h2>🔍 SEARCH MEMBER</h2>
+                <input type="text" id="searchInput" class="search-box" placeholder="Search by ID, Name, NIN or Rank..." oninput="searchMember()">
+                <div id="searchResult" style="margin-top:20px;"></div>
+            </div>
+        </div>
+
+        <!-- MEMBER PORTAL -->
+        <div id="memberPanel" class="hidden">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+                <h2>🫡 MEMBER PORTAL</h2>
+                <button class="secondary logout-btn" onclick="logout()">LOGOUT</button>
+            </div>
+
+            <div class="nav-tabs">
+                <div class="nav-tab active" onclick="showMemberTab('profile')">👤 My Profile</div>
+                <div class="nav-tab" onclick="showMemberTab('locupdate')">📍 Update Location</div>
+                <div class="nav-tab" onclick="showMemberTab('activity')">📝 Log Activity</div>
+                <div class="nav-tab" id="memberMessagesTab" onclick="showMemberTab('messages')">
+                    📩 Messages
+                    <span id="memberMsgBadge" class="badge-notif hidden">0</span>
+                </div>
+                <div class="nav-tab" onclick="showMemberTab('history')">📋 My History</div>
+            </div>
+
+            <div id="member-profile" class="card">
+                <h2>👤 MY PROFILE</h2>
+                <div id="memberIdCard" style="display:none;" class="id-display">
+                    <div style="font-size:0.9rem;color:#fef3c7;">SPECIAL INTELLIGENT SQUAD — MEMBER ID</div>
+                    <div id="displaySISID" style="font-size:1.6rem;margin:8px 0;"></div>
+                    <div id="displayName"></div>
+                    <div style="margin-top:8px;">
+                        <span class="rank-badge" id="displayRank">Recruit</span>
+                        <span style="margin-left:10px;font-size:0.9rem;">Joined: <span id="displayJoinDate"></span></span>
+                    </div>
+                </div>
+                <div id="pendingNotice" class="alert">
+                    ⏳ <strong>Account Pending Approval</strong><br>Your SIS ID will appear here once the Admin approves your membership. Please check back later.
+                </div>
+                <div style="margin-top:20px;">
+                    <h3>Personal Details</h3>
+                    <p><strong>Full Name:</strong> <span id="mName">-</span></p>
+                    <p><strong>NIN:</strong> <span id="mNIN">-</span></p>
+                    <p><strong>State of Origin:</strong> <span id="mState">-</span></p>
+                    <p><strong>Phone:</strong> <span id="mPhone">-</span></p>
+                    <p><strong>Address:</strong> <span id="mAddress">-</span></p>
+                    <p><strong>Sponsor:</strong> <span id="mSponsor">-</span></p>
+                    <p class="device-info">🔒 Active on this device since: <span id="deviceLinkedDate">-</span></p>
+                </div>
+                <div style="margin-top:25px;">
+                    <h3>🔐 Change Password</h3>
+                    <input type="password" id="currentPassword" placeholder="Current Password">
+                    <input type="password" id="newPassword" placeholder="New Password">
+                    <input type="password" id="confirmPassword" placeholder="Confirm New Password">
+                    <button class="secondary" onclick="changePassword()">UPDATE PASSWORD</button>
+                </div>
+            </div>
+
+            <div id="member-locupdate" class="card hidden">
+                <h2>📍 SUBMIT LOCATION & MOVEMENT UPDATE</h2>
+                <label>Current Location *</label>
+                <input type="text" id="memberLocation" placeholder="e.g. Ikeja, Lagos">
+                <label>Status / Movement Type *</label>
+                <select id="memberLocStatus">
+                    <option value="">Select...</option>
+                    <option>At Base / Residence</option>
+                    <option>On Duty / Patrol</option>
+                    <option>Traveling</option>
+                    <option>Personal Business</option>
+                    <option>On Leave</option>
+                </select>
+                <label>Remarks / Notes</label>
+                <textarea id="memberLocNote" rows="3" placeholder="Any additional information..."></textarea>
+                <button onclick="submitLocationUpdate()">✅ SUBMIT LOCATION UPDATE</button>
+            </div>
+
+            <div id="member-activity" class="card hidden">
+                <h2>📝 LOG AN ACTIVITY</h2>
+                <label>Activity Type *</label>
+                <select id="activityType">
+                    <option value="">Select...</option>
+                    <option>Training</option>
+                    <option>Patrol / Duty</option>
+                    <option>Meeting</option>
+                    <option>Community Service</option>
+                    <option>Other</option>
+                </select>
+                <label>Activity Details *</label>
+                <textarea id="activityDetails" rows="4" placeholder="Describe what you did or what happened..."></textarea>
+                <button onclick="submitActivity()">✅ SAVE ACTIVITY LOG</button>
+            </div>
+
+            <div id="member-messages" class="card hidden">
+                <h2>📩 MESSAGES FROM ADMIN</h2>
+                <div id="memberChatArea" class="chat-messages" style="min-height:300px;">
+                    <p style="color:#9ca3af;text-align:center;">No messages yet. Any messages from Admin will appear here.</p>
+                </div>
+                <div style="margin-top:15px;">
+                    <textarea id="memberMsgInput" rows="2" placeholder="Type a reply to Admin..."></textarea>
+                    <button onclick="sendMemberReply()">📤 SEND REPLY</button>
+                </div>
+            </div>
+
+            <div id="member-history" class="card hidden">
+                <h2>📋 MY HISTORY</h2>
+                <h3>📍 Location Updates</h3>
+                <div id="myLocHistory">
+                    <p style="color:#9ca3af;">No location updates submitted yet.</p>
+                </div>
+                <h3 style="margin-top:30px;">📝 Activity Logs</h3>
+                <div id="myActivityHistory">
+                    <p style="color:#9ca3af;">No activities logged yet.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+<script>
+// ========== RANK SYSTEM DEFINITION ==========
+const RANKS = ['Recruit', 'Member', 'Corporal', 'Sergeant', 'Lieutenant', 'Captain', 'Commander'];
+
+// ========== DEVICE IDENTIFICATION ==========
+function getDeviceId(){
+    let deviceId = localStorage.getItem('sis_device_id');
+    if(!deviceId){
+        deviceId = 'dev_' + Math.random().toString(36).substring(2,15) + '_' + Date.now();
+        localStorage.setItem('sis_device_id', deviceId);
+    }
+    return deviceId;
+}
+function getDeviceInfo(){
+    const ua = navigator.userAgent;
+    let deviceType = 'Desktop';
+    if(/Android|iPhone|iPad|iPod/.test(ua)) deviceType = 'Mobile';
+    else if(/Tablet/.test(ua)) deviceType = 'Tablet';
+    return {
+        id: getDeviceId(),
+        type: deviceType,
+        agent: ua.substring(0,60) + '...',
+        linkedAt: new Date().toISOString().replace('T',' ').substring(0,19)
+    };
+}
+
+// ========== DATA STORED LOCALLY ==========
+let users = JSON.parse(localStorage.getItem('sis_users')) || [
+    { username:'admin', password:'admin123', role:'admin', fullName:'System Administrator', rank:'Commander', status:'active', sisid:'SIS-ADM-0000', dateJoined:'2026-10-01', activeDevice: null },
+    { username:'johndoe', password:'member123', role:'member', fullName:'John Doe', nin:'12345678901', state:'Lagos', phone:'08012345678', address:'Ikeja, Lagos', rank:'Member', status:'active', sisid:'SIS-LAG-0001', dateJoined:'2026-10-10', sponsor:'Admin', activeDevice: null }
+];
+let locationLogs = JSON.parse(localStorage.getItem('sis_locations')) || [
+    { sisid:'SIS-LAG-0001', memberName:'John Doe', location:'Ikeja, Lagos', status:'At Base', notes:'All well', timestamp:'2026-10-14 09:30:00' }
+];
+let activityLogs = JSON.parse(localStorage.getItem('sis_activities')) || [
+    { sisid:'SIS-LAG-0001', memberName:'John Doe', type:'Training', details:'Morning physical training completed', timestamp:'2026-10-14 07:00:00' }
+];
+let messages = JSON.parse(localStorage.getItem('sis_messages')) || [];
+let currentUser = null;
+let selectedChatMember = null;
+const CURRENT_DEVICE = getDeviceInfo();
+
+// ========== UTILITY FUNCTIONS ==========
+function saveData(){
+    localStorage.setItem('sis_users', JSON.stringify(users));
+    localStorage.setItem('sis_locations', JSON.stringify(locationLogs));
+    localStorage.setItem('sis_activities', JSON.stringify(activityLogs));
+    localStorage.setItem('sis_messages', JSON.stringify(messages));
+}
+function getTimestamp(){
+    const d = new Date();
+    return d.toISOString().replace('T',' ').substring(0,19);
+}
+function generateSISID(state){
+    const stateCode = (state || 'UNK').substring(0,3).toUpperCase();
+    const count = users.filter(u=>u.status==='active' && u.role==='member').length + 1;
+    return `SIS-${stateCode}-${String(count).padStart(4,'0')}`;
+}
+function updateMessageBadges(){
+    if(currentUser?.role==='admin'){
+        const unread = messages.filter(m=>m.senderRole==='member' && !m.readByAdmin).length;
+        const badge = document.getElementById('adminMsgBadge');
+        if(unread>0){ badge.textContent=unread; badge.classList.remove('hidden'); }
+        else badge.classList.add('hidden');
+    } else if(currentUser?.role==='member'){
+        const unread = messages.filter(m=>m.sisid===currentUser.sisid && m.senderRole==='admin' && !m.readByMember).length;
+        const badge = document.getElementById('memberMsgBadge');
+        if(unread>0){ badge.textContent=unread; badge.classList.remove('hidden'); }
+        else badge.classList.add('hidden');
+    }
+}
+
+// ========== PAGE NAVIGATION ==========
+function hideAllPages(){
+    document.getElementById('loginPage').classList.add('hidden');
+    document.getElementById('registerPage').classList.add('hidden');
+    document.getElementById('deviceBlockedPage').classList.add('hidden');
+    document.getElementById('adminPanel').classList.add('hidden');
+    document.getElementById('memberPanel').classList.add('hidden');
+}
+function showLogin(){ hideAllPages(); document.getElementById('loginPage').classList.remove('hidden'); }
+function showDeviceBlocked(){ hideAllPages(); document.getElementById('deviceBlockedPage').classList.remove('hidden'); }
+function showRegister(){ hideAllPages(); document.getElementById('registerPage').classList.remove('hidden'); }
+function logout(){
+    if(currentUser){
+        const idx = users.findIndex(u=>u.username===currentUser.username);
+        if(idx !== -1 && users[idx].activeDevice?.id === CURRENT_DEVICE.id){
+            users[idx].activeDevice = null;
+            saveData();
+        }
+    }
+    currentUser = null;
+    selectedChatMember = null;
+    showLogin();
+}
+
+// ========== LOGIN & REGISTER ==========
+function login(){
+    const u = document.getElementById('loginUser').value.trim();
+    const p = document.getElementById('loginPass').value;
+    const found = users.find(x=>x.username===u && x.password===p);
+    
+    if(found){
+        if(found.role === 'admin'){
+            currentUser = found;
+            showAdminPanel();
+            return;
+        }
+        
+        if(!found.activeDevice){
+            const idx = users.findIndex(x=>x.username===u);
+            users[idx].activeDevice = { ...CURRENT_DEVICE };
+            saveData();
+            currentUser = found;
+            showMemberPanel();
+        } else if(found.activeDevice.id === CURRENT_DEVICE.id){
+            currentUser = found;
+            showMemberPanel();
+        } else {
+            showDeviceBlocked();
+        }
+    }else{
+        alert('❌ Invalid username or password!');
+    }
+}
+
+function register(){
+    const newUser = {
+        username: document.getElementById('regUsername').value.trim(),
+        password: document.getElementById('regPassword').value,
+        fullName: document.getElementById('regName').value.trim(),
+        nin: document.getElementById('regNIN').value.trim(),
+        dob: document.getElementById('regDOB').value,
+        gender: document.getElementById('regGender').value,
+        state: document.getElementById('regState').value.trim(),
+        phone: document.getElementById('regPhone').value.trim(),
+        address: document.getElementById('regAddress').value.trim(),
+        emergName: document.getElementById('regEmergName').value.trim(),
+        emergPhone: document.getElementById('regEmergPhone').value.trim(),
+        sponsor: document.getElementById('regSponsor').value.trim(),
+        role: 'member',
+        rank: 'Recruit',
+        status: 'pending',
+        dateJoined: '',
+        activeDevice: null
+    };
+    if(!newUser.username || !newUser.password || !newUser.fullName || !newUser.nin || !newUser.state || !newUser.phone){
+        alert('⚠️ Please fill all required fields!'); return;
+    }
+    if(users.find(x=>x.username===newUser.username)){
+        alert('⚠️ Username already taken!'); return;
+    }
+    users.push(newUser);
+    saveData();
+    alert('✅ Application submitted successfully! Please wait for Admin approval.');
+    showLogin();
+}
+
+function changePassword(){
+    const curr = document.getElementById('currentPassword').value;
+    const newP = document.getElementById('newPassword').value;
+    const conf = document.getElementById('confirmPassword').value;
+    
+    if(curr !== currentUser.password){
+        alert('❌ Current password is incorrect!'); return;
+    }
+    if(!newP || newP.length<4){
+        alert('⚠️ New password must be at least 4 characters!'); return;
+    }
+    if(newP !== conf){
+        alert('❌ New passwords do not match!'); return;
+    }
+    const idx = users.findIndex(u=>u.username===currentUser.username);
+    users[idx].password = newP;
+    currentUser.password = newP;
+    saveData();
+    alert('✅ Password updated successfully!');
+    document.getElementById('currentPassword').value='';
+    document.getElementById('newPassword').value='';
+    document.getElementById('confirmPassword').value='';
+}
+
+// ========== ADMIN FUNCTIONS ==========
+function showAdminPanel(){
+    hideAllPages();
+    document.getElementById('adminPanel').classList.remove('hidden');
+    updateAdminStats();
+    renderPendingList();
+    renderMembersList();
+    renderRankManagementList();
+    renderDeviceList();
+    renderLocationLogs();
+    renderActivityLogs();
+    renderMsgMemberList();
+    updateMessageBadges();
+}
+function showAdminTab(tab){
+    document.querySelectorAll('#adminPanel > .card').forEach(c=>c.classList.add('hidden'));
+    document.getElementById(`admin-${tab}`).classList.remove('hidden');
+    document.querySelectorAll('#adminPanel .nav-tab').forEach(t=>t.classList.remove('active'));
+    event.target.classList.add('active');
+    if(tab==='ranks') renderRankManagementList();
+    if(tab==='messages') updateMessageBadges();
+}
+function updateAdminStats(){
+    const active = users.filter(u=>u.status==='active').length;
+    const pending = users.filter(u=>u.status==='pending').length;
+    document.getElementById('totalActive').textContent = active;
+    document.getElementById('totalPending').textContent = pending;
+    document.getElementById('totalLocUpdates').textContent = locationLogs.length;
+    document.getElementById('totalMembers').textContent = users.filter(u=>u.role==='member').length;
+    updateMessageBadges();
+}
+function renderPendingList(){
+    const pending = users.filter(u=>u.status==='pending');
+    const container = document.getElementById('pendingList');
+    if(pending.length===0){
+        container.innerHTML = '<p style="color:#9ca3af;">✅ No pending applications.</p>';
+        return;
+    }
+    container.innerHTML = pending.map((u,i)=>`
+        <div class="card" style="background:#292514;">
+            <h3>${u.fullName}</h3>
+            <p><strong>NIN:</strong> ${u.nin}</p>
+            <p><strong>State:</strong> ${u.state} | <strong>Phone:</strong> ${u.phone}</p>
+            <p><strong>Sponsor:</strong> ${u.sponsor || 'None declared'}</p>
+            <div class="btn-group">
+                <button class="success" onclick="approveMember('${u.username}')">✅ APPROVE</button>
+                <button class="secondary" onclick="rejectMember('${u.username}')">❌ REJECT</button>
+            </div>
+        </div>
+    `).join('');
+}
+function approveMember(username){
+    const idx = users.findIndex(u=>u.username===username);
+    const today = new Date().toISOString().split('T')[0];
+    users[idx].status = 'active';
+    users[idx].sisid = generateSISID(users[idx].state);
+    users[idx].dateJoined = today;
+    users[idx].rank = 'Recruit';
+    saveData();
+    alert(`✅ Member approved!\nAssigned ID: ${users[idx].sisid}`);
+    showAdminPanel();
+}
+function rejectMember(username){
+    if(confirm('❌ Reject this application? This cannot be undone.')){
+        users = users.filter(u=>u.username!==username);
+        saveData();
+        showAdminPanel();
+    }
+}
+function renderMembersList(){
+    const active = users.filter(u=>u.status==='active' && u.role==='member');
+    document.getElementById('membersList').innerHTML = active.map(u=>`
+        <tr>
+            <td><strong>${u.sisid}</strong></td>
+            <td>${u.fullName}</td>
+            <td><span class="rank-badge">${u.rank}</span></td>
+            <td>${u.nin}</td>
+            <td>${u.dateJoined || '-'}</td>
+            <td class="status-active">Active</td>
+            <td>
+                <button class="secondary small" onclick="openChatWithMember('${u.sisid}')">📩 Message</button>
+                <button class="small" style="background:#ca8a04;margin-left:4px;" onclick="openRankEdit('${u.sisid}')">🎖️ Rank</button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+// ========== RANK MANAGEMENT SYSTEM ==========
+function renderRankManagementList(){
+    const activeMembers = users.filter(u=>u.status==='active' && u.role==='member');
+    const container = document.getElementById('rankMemberList');
+    
+    if(activeMembers.length===0){
+        container.innerHTML = '<p style="color:#9ca3af;">No active members yet.</p>';
+        return;
+    }
+    
+    container.innerHTML = activeMembers.map(u=>`
+        <div class="card" style="background:#1f2937;margin-bottom:12px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+                <div>
+                    <strong>${u.fullName}</strong><br>
+                    <span style="color:#9ca3af;font-size:0.85rem;">${u.sisid}</span>
+                </div>
+                <div class="rank-edit-row">
+                    <button class="small demote" onclick="changeRankLevel('${u.sisid}', -1)">⬇️ Demote</button>
+                    <select id="rankSelect_${u.sisid}" class="rank-select">
+                        ${RANKS.map(r=>`<option value="${r}" ${u.rank===r?'selected':''}>${r}</option>`).join('')}
+                    </select>
+                    <button class="small success" onclick="saveSelectedRank('${u.sisid}')">✅ Save</button>
+                    <button class="small promote" onclick="changeRankLevel('${u.sisid}', 1)">⬆️ Promote</button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function openRankEdit(sisid){
+    showAdminTab('ranks');
+    setTimeout(() => {
+        document.getElementById(`rankSelect_${sisid}`)?.scrollIntoView({behavior:'smooth',block:'center'});
+    }, 100);
+}
+
+function changeRankLevel(sisid, direction){
+    const idx = users.findIndex(u=>u.sisid===sisid);
+    const currentRank = users[idx].rank;
+    const currentIndex = RANKS.indexOf(currentRank);
+    const newIndex = currentIndex + direction;
+    
+    if(newIndex < 0 || newIndex >= RANKS.length){
+        alert(`⚠️ Cannot ${direction > 0 ? 'promote' : 'demote'} — already at the ${direction > 0 ? 'highest' : 'lowest'} rank!`);
+        return;
+    }
+    
+    const newRank = RANKS[newIndex];
+    const action = direction > 0 ? 'PROMOTE' : 'DEMOTE';
+    
+    if(confirm(`🎖️ ${action} MEMBER\n\nName: ${users[idx].fullName}\nFrom: ${currentRank}\nTo:   ${newRank}\n\nProceed?`)){
+        users[idx].rank = newRank;
+        saveData();
+        alert(`✅ Successfully ${direction > 0 ? 'promoted' : 'demoted'} to ${newRank}!`);
+        renderRankManagementList();
+        renderMembersList();
+    }
+}
+
+function saveSelectedRank(sisid){
+    const idx = users.findIndex(u=>u.sisid===sisid);
+    const select = document.getElementById(`rankSelect_${sisid}`);
+    const oldRank = users[idx].rank;
+    const newRank = select.value;
+    
+    if(oldRank === newRank){
+        alert('⚠️ No changes made — rank is the same!');
+        return;
+    }
+    
+    if(confirm(`🎖️ CHANGE RANK\n\nName: ${users[idx].fullName}\nFrom: ${oldRank}\nTo:   ${newRank}\n\nSave this change?`)){
+        users[idx].rank = newRank;
+        saveData();
+        alert('✅ Rank updated successfully!');
+        renderRankManagementList();
+        renderMembersList();
+    }
+}
+
+function renderDeviceList(){
+    const activeMembers = users.filter(u=>u.status==='active' && u.role==='member');
+    const container = document.getElementById('deviceList');
+    if(activeMembers.length===0){
+        container.innerHTML = '<p style="color:#9ca3af;">No active members yet.</p>';
+        return;
+    }
+    container.innerHTML = activeMembers.map(u=>{
+        const hasDevice = !!u.activeDevice;
+        return `
+            <div class="card" style="background:${hasDevice ? '#1a2e1f' : '#2a2514'};">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;">
+                    <div>
+                        <h3>${u.fullName} — ${u.sisid}</h3>
+                        ${hasDevice ? `
+                            <p><strong>Device Type:</strong> ${u.activeDevice.type}</p>
+                            <p><strong>Linked Since:</strong> ${u.activeDevice.linkedAt}</p>
+                            <p class="device-info">Device ID: ${u.activeDevice.id.substring(0,15)}...</p>
+                        ` : '<p style="color:#eab308;">⚠️ No device linked yet — hasn\'t logged in</p>'}
+                    </div>
+                    ${hasDevice ? `
+                        <button class="warning small" onclick="resetDevice('${u.username}')">🔄 RESET DEVICE</button>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+function resetDevice(username){
+    if(confirm('⚠️ Reset this member\'s device lock? They will be able to log in from a new device. Their old device will be blocked. Continue?')){
+        const idx = users.findIndex(u=>u.username===username);
+        users[idx].activeDevice = null;
+        saveData();
+        alert('✅ Device access reset! Member can now log in from a new phone.');
+        renderDeviceList();
+    }
+}
+
+function renderLocationLogs(){
+    const sorted = [...locationLogs].reverse();
+    document.getElementById('locationLogs').innerHTML = sorted.length ? sorted.map(l=>`
+        <div class="log-item">
+            <div><strong>${l.sisid}</strong> — ${l.memberName}</div>
+            <div>📍 <strong>${l.location}</strong> &nbsp; | &nbsp; ${l.status}</div>
+            <div class="log-time">🕐 ${l.timestamp}</div>
+            ${l.notes ? `<div style="font-size:0.9rem;color:#9ca3af;">${l.notes}</div>` : ''}
+        </div>
+    `).join('') : '<p style="color:#9ca3af;">No location updates yet.</p>';
+}
+function renderActivityLogs(){
+    const sorted = [...activityLogs].reverse();
+    document.getElementById('activityLogs').innerHTML = sorted.length ? sorted.map(a=>`
+        <div class="log-item">
+            <div><strong>${a.sisid}</strong> — ${a.memberName}</div>
+            <div>📝 <strong>${a.type}</strong></div>
+            <div>${a.details}</div>
+            <div class="log-time">🕐 ${a.timestamp}</div>
+        </div>
+    `).join('') : '<p style="color:#9ca3af;">No activities logged yet.</p>';
+}
+function searchMember(){
+    const q = document.getElementById('searchInput').value.toLowerCase().trim();
+    const resultDiv = document.getElementById('searchResult');
+    if(!q){ resultDiv.innerHTML=''; return; }
+    const found = users.filter(u=>u.status==='active' && u.role==='member' && (
+        u.sisid.toLowerCase().includes(q) ||
+        u.fullName.toLowerCase().includes(q) ||
+        u.nin.includes(q) ||
+        u.rank.toLowerCase().includes(q)
+    ));
+    if(found.length===0){
+        resultDiv.innerHTML = '<p style="color:#eab308;">No member found matching your search.</p>';
+        return;
+    }
+    resultDiv.innerHTML = found.map(u=>`
+        <div class="card" style="background:#162033;">
+            <h3>${u.sisid}</h3>
+            <p><strong>Name:</strong> ${u.fullName}</p>
+            <p><strong>Rank:</strong> <span class="rank-b
+-badge">${u.rank}</span></p>
+            <p><strong>NIN:</strong> ${u.nin}</p>
+            <p><strong>Phone:</strong> ${u.phone}</p>
+            <p><strong>Joined:</strong> ${u.dateJoined}</p>
+            <div class="btn-group">
+                <button class="secondary small" onclick="openChatWithMember('${u.sisid}')">📩 Message</button>
+                <button class="small" style="background:#ca8a04;" onclick="openRankEdit('${u.sisid}')">🎖️ Edit Rank</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function renderMsgMemberList(){
+    const activeMembers = users.filter(u=>u.status==='active' && u.role==='member');
+    const container = document.getElementById('msgMemberList');
+    if(activeMembers.length===0){
+        container.innerHTML = '<p style="color:#9ca3af;font-size:0.9rem;">No active members to message yet.</p>';
+        return;
+    }
+    container.innerHTML = activeMembers.map(m=>{
+        const unread = messages.some(msg=>msg.sisid===m.sisid && msg.senderRole==='member' && !msg.readByAdmin);
+        return `
+            <div class="member-item" data-sisid="${m.sisid}" onclick="selectChatMember('${m.sisid}','${m.fullName}')">
+                ${unread ? '<span class="unread-dot"></span>' : ''}
+                <strong>${m.fullName}</strong><br>
+                <small style="color:#9ca3af;">${m.sisid} — ${m.rank}</small>
+            </div>
+        `;
+    }).join('');
+}
+
+function selectChatMember(sisid, name){
+    selectedChatMember = { sisid, name };
+    document.getElementById('chatHeader').style.display='block';
+    document.getElementById('chatWithName').textContent = name + ' (' + sisid + ')';
+    document.getElementById('chatInputArea').style.display='block';
+    
+    document.querySelectorAll('.member-item').forEach(el=>el.classList.remove('selected'));
+    event.currentTarget.classList.add('selected');
+    
+    messages.forEach(m=>{ if(m.sisid===sisid && m.senderRole==='member') m.readByAdmin=true; });
+    saveData();
+    
+    renderChatMessages();
+    updateMessageBadges();
+}
+
+function openChatWithMember(sisid){
+    const member = users.find(u=>u.sisid===sisid);
+    if(member){
+        showAdminTab('messages');
+        setTimeout(()=>selectChatMember(sisid, member.fullName), 50);
+    }
+}
+
+function renderChatMessages(){
+    if(!selectedChatMember){
+        document.getElementById('chatMessages').innerHTML = '<div class="no-chat-selected">← Select a member from the list to start messaging</div>';
+        return;
+    }
+    const chatMsgs = messages.filter(m=>m.sisid===selectedChatMember.sisid);
+    const container = document.getElementById('chatMessages');
+    if(chatMsgs.length===0){
+        container.innerHTML = '<p style="color:#9ca3af;text-align:center;">No messages yet. Send your first message below.</p>';
+        return;
+    }
+    container.innerHTML = chatMsgs.map(m=>`
+        <div class="msg ${m.senderRole}">
+            <div class="msg-bubble">${m.text}</div>
+            <div class="msg-time">${m.timestamp}</div>
+        </div>
+    `).join('');
+    container.scrollTop = container.scrollHeight;
+}
+
+function sendAdminMessage(){
+    const input = document.getElementById('adminMsgInput');
+    const text = input.value.trim();
+    if(!text || !selectedChatMember){ alert('⚠️ Select a member and type a message first!'); return; }
+    
+    messages.push({
+        sisid: selectedChatMember.sisid,
+        memberName: selectedChatMember.name,
+        senderRole: 'admin',
+        text: text,
+        timestamp: getTimestamp(),
+        readByMember: false,
+        readByAdmin: true
+    });
+    saveData();
+    input.value='';
+    renderChatMessages();
+    renderMsgMemberList();
+}
+
+// ========== MEMBER FUNCTIONS ==========
+function showMemberPanel(){
+    hideAllPages();
+    document.getElementById('memberPanel').classList.remove('hidden');
+    updateMemberProfile();
+    renderMemberLocHistory();
+    renderMemberActHistory();
+    renderMemberMessages();
+    updateMessageBadges();
+}
+
+function showMemberTab(tab){
+    document.querySelectorAll('#memberPanel > .card').forEach(c=>c.classList.add('hidden'));
+    document.getElementById(`member-${tab}`).classList.remove('hidden');
+    document.querySelectorAll('#memberPanel .nav-tab').forEach(t=>t.classList.remove('active'));
+    event.target.classList.add('active');
+    if(tab==='messages') updateMessageBadges();
+}
+
+function updateMemberProfile(){
+    const u = currentUser;
+    document.getElementById('mName').textContent = u.fullName;
+    document.getElementById('mNIN').textContent = u.nin || '-';
+    document.getElementById('mState').textContent = u.state || '-';
+    document.getElementById('mPhone').textContent = u.phone || '-';
+    document.getElementById('mAddress').textContent = u.address || '-';
+    document.getElementById('mSponsor').textContent = u.sponsor || '-';
+    
+    if(u.status==='active'){
+        document.getElementById('pendingNotice').style.display='none';
+        document.getElementById('memberIdCard').style.display='block';
+        document.getElementById('displaySISID').textContent = u.sisid;
+        document.getElementById('displayName').textContent = u.fullName;
+        document.getElementById('displayRank').textContent = u.rank;
+        document.getElementById('displayJoinDate').textContent = u.dateJoined;
+        document.getElementById('deviceLinkedDate').textContent = u.activeDevice?.linkedAt || 'Unknown';
+    } else {
+        document.getElementById('pendingNotice').style.display='block';
+        document.getElementById('memberIdCard').style.display='none';
+    }
+}
+
+function submitLocationUpdate(){
+    const loc = document.getElementById('memberLocation').value.trim();
+    const status = document.getElementById('memberLocStatus').value;
+    const notes = document.getElementById('memberLocNote').value.trim();
+    
+    if(!loc || !status){ alert('⚠️ Please fill in location and status!'); return; }
+    
+    locationLogs.push({
+        sisid: currentUser.sisid,
+        memberName: currentUser.fullName,
+        location: loc,
+        status: status,
+        notes: notes,
+        timestamp: getTimestamp()
+    });
+    saveData();
+    alert('✅ Location update submitted!');
+    document.getElementById('memberLocation').value='';
+    document.getElementById('memberLocStatus').value='';
+    document.getElementById('memberLocNote').value='';
+    renderMemberLocHistory();
+}
+
+function submitActivity(){
+    const type = document.getElementById('activityType').value;
+    const details = document.getElementById('activityDetails').value.trim();
+    
+    if(!type || !details){ alert('⚠️ Please fill in all fields!'); return; }
+    
+    activityLogs.push({
+        sisid: currentUser.sisid,
+        memberName: currentUser.fullName,
+        type: type,
+        details: details,
+        timestamp: getTimestamp()
+    });
+    saveData();
+    alert('✅ Activity log saved!');
+    document.getElementById('activityType').value='';
+    document.getElementById('activityDetails').value='';
+    renderMemberActHistory();
+}
+
+function renderMemberMessages(){
+    const myMsgs = messages.filter(m=>m.sisid === currentUser.sisid);
+    const container = document.getElementById('memberChatArea');
+    
+    myMsgs.forEach(m=>{ if(m.senderRole==='admin') m.readByMember=true; });
+    saveData();
+    
+    if(myMsgs.length===0){
+        container.innerHTML = '<p style="color:#9ca3af;text-align:center;">No messages yet. Any messages from Admin will appear here.</p>';
+        return;
+    }
+    container.innerHTML = myMsgs.map(m=>`
+        <div class="msg ${m.senderRole}">
+            <div class="msg-bubble">${m.text}</div>
+            <div class="msg-time">${m.timestamp}</div>
+        </div>
+    `).join('');
+    container.scrollTop = container.scrollHeight;
+}
+
+function sendMemberReply(){
+    const input = document.getElementById('memberMsgInput');
+    const text = input.value.trim();
+    if(!text){ alert('⚠️ Type a message first!'); return; }
+    
+    messages.push({
+        sisid: currentUser.sisid,
+        memberName: currentUser.fullName,
+        senderRole: 'member',
+        text: text,
+        timestamp: getTimestamp(),
+        readByAdmin: false,
+        readByMember: true
+    });
+    saveData();
+    input.value='';
+    renderMemberMessages();
+    updateMessageBadges();
+}
+
+function renderMemberLocHistory(){
+    const myLogs = locationLogs.filter(l=>l.sisid === currentUser.sisid).reverse();
+    document.getElementById('myLocHistory').innerHTML = myLogs.length ? myLogs.map(l=>`
+        <div class="log-item">
+            <div>📍 <strong>${l.location}</strong> — ${l.status}</div>
+            ${l.notes ? `<div style="font-size:0.9rem;color:#9ca3af;">${l.notes}</div>` : ''}
+            <div class="log-time">🕐 ${l.timestamp}</div>
+        </div>
+    `).join('') : '<p style="color:#9ca3af;">No location updates submitted yet.</p>';
+}
+
+function renderMemberActHistory(){
+    const myActs = activityLogs.filter(a=>a.sisid === currentUser.sisid).reverse();
+    document.getElementById('myActivityHistory').innerHTML = myActs.length ? myActs.map(a=>`
+        <div class="log-item">
+            <div>📝 <strong>${a.type}</strong></div>
+            <div>${a.details}</div>
+            <div class="log-time">🕐 ${a.timestamp}</div>
+        </div>
+    `).join('') : '<p style="color:#9ca3af;">No activities logged yet.</p>';
+}
+</script>
+
+</body>
+</html>
